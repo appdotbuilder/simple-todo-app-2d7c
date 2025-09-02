@@ -1,12 +1,31 @@
+import { db } from '../db';
+import { tasksTable } from '../db/schema';
 import { type DeleteTaskInput } from '../schema';
+import { eq } from 'drizzle-orm';
 
-export async function deleteTask(input: DeleteTaskInput): Promise<{ success: boolean }> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is deleting a task from the database.
-    // It should:
-    // 1. Find the task by ID
-    // 2. Delete the task from the tasks table
-    // 3. Return success status
-    // 4. Handle cases where the task doesn't exist
-    return Promise.resolve({ success: true });
-}
+export const deleteTask = async (input: DeleteTaskInput): Promise<{ success: boolean }> => {
+  try {
+    // Check if task exists first
+    const existingTask = await db.select()
+      .from(tasksTable)
+      .where(eq(tasksTable.id, input.id))
+      .execute();
+
+    if (existingTask.length === 0) {
+      // Task doesn't exist - could throw error or return false
+      // For this implementation, we'll consider it a successful deletion
+      // since the desired end state (task not existing) is achieved
+      return { success: true };
+    }
+
+    // Delete the task
+    await db.delete(tasksTable)
+      .where(eq(tasksTable.id, input.id))
+      .execute();
+
+    return { success: true };
+  } catch (error) {
+    console.error('Task deletion failed:', error);
+    throw error;
+  }
+};

@@ -1,11 +1,24 @@
+import { db } from '../db';
+import { tasksTable } from '../db/schema';
 import { type GetTaskInput, type Task } from '../schema';
+import { eq } from 'drizzle-orm';
 
-export async function getTask(input: GetTaskInput): Promise<Task | null> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching a single task by ID from the database.
-    // It should:
-    // 1. Query the tasks table for a task with the given ID
-    // 2. Return the task if found, or null if not found
-    // 3. Handle cases where the task doesn't exist gracefully
-    return Promise.resolve(null);
-}
+export const getTask = async (input: GetTaskInput): Promise<Task | null> => {
+  try {
+    // Query the tasks table for a task with the given ID
+    const result = await db.select()
+      .from(tasksTable)
+      .where(eq(tasksTable.id, input.id))
+      .execute();
+
+    // Return the task if found, or null if not found
+    if (result.length === 0) {
+      return null;
+    }
+
+    return result[0];
+  } catch (error) {
+    console.error('Task retrieval failed:', error);
+    throw error;
+  }
+};
